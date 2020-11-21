@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS `request`(
+    `id` SMALLINT(5) NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(255) NOT NULL,
+    `email` VARCHAR(80) NOT NULL,
+    `phone` VARCHAR(11) NOT NULL,
+    PRIMARY KEY (`id`)
+);
