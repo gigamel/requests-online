@@ -39,14 +39,20 @@ abstract class ActiveModel extends Model
     }
     
     /**
+     * @param string $cond
      * @return int
      */
-    public function getCount()
+    public function getCount($cond = '')
     {
         $result = 0;
         
         if (method_exists($this, 'table') && DataObject::connect() !== null) {
-            $stm = DataObject::$dbh->prepare('SELECT COUNT(*) AS total FROM '.$this->table());
+            $query = 'SELECT COUNT(*) AS total FROM '.$this->table();
+            if (is_string($cond) && !empty(trim($cond))) {
+                $query .= ' WHERE '.$cond;
+            }
+            
+            $stm = DataObject::$dbh->prepare($query);
             $stm->execute();
             
             $result = $stm->fetch(PDO::FETCH_ASSOC)['total'];

@@ -23,6 +23,16 @@ final class ASh extends \abstracts\Base
     public $hasRoute = false;
     
     /**
+     * @var array $_settings
+     */
+    private $_settings = [];
+    
+    /**
+     * @var array $settings
+     */
+    private $settings = [];
+    
+    /**
      * @return ASh
      */
     public static function createApplication()
@@ -67,6 +77,58 @@ final class ASh extends \abstracts\Base
         } else {
             die("{$this->route} not correct.");
         }
+    }
+    
+    /**
+     * @param string $type
+     * @return $this
+     */
+    final public function loadSettings($type = null)
+    {
+        if (is_string($type)) {
+            if (!isset($this->_settings[$type])) {
+                $settingsFile = __DIR__ . '/settings/' . $type . '.php';
+                if (file_exists($settingsFile)) {
+                    $settings = require_once($settingsFile);
+                    if (is_array($settings)) {
+                        $this->_settings[$type] = true;
+                        $this->settings[$type] = array_merge($settings, $this->settings);
+                    }
+                }
+            }
+        }
+
+        return $this;
+    }
+    
+    /**
+     * @param string $dotsPath
+     */
+    final public function getOption($dotsPath = null)
+    {
+        $value = null;
+
+        $dotsPath = is_string($dotsPath) ? $dotsPath : null;
+        if (!is_null($dotsPath)) {
+            $keys = explode('.', $dotsPath);
+            foreach ($keys as $key) {
+                if (is_null($value)) {
+                    if (isset($this->settings[$key])) {
+                        $value = $this->settings[$key];
+                    } else {
+                        break;
+                    }
+                } else {
+                    if (isset($value[$key])) {
+                        $value = $value[$key];
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return $value;
     }
     
     private function __construct()

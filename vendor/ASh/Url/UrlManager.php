@@ -9,7 +9,7 @@ class UrlManager
      * @param string $path
      * @return string
      */
-    public static function link(string $path)
+    public static function link($path = null)
     {
         $path = is_string($path) ? $path : '';
         

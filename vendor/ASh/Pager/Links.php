@@ -19,6 +19,7 @@ class Links extends Base
     
     /**
      * @param Pagination $pagination
+     * @return string
      */
     public static function widget(Pagination $pagination)
     {
@@ -45,7 +46,7 @@ class Links extends Base
             static::$html .= '</ul></div>';
         }
         
-        echo static::$html;
+        return static::$html;
     }
     
     /**

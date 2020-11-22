@@ -1,6 +1,8 @@
 <?php
+use ASh;
 use vendor\ASh\Url\UrlManager;
 use vendor\ASh\Pager\Links;
+use vendor\ASh\Filter\FilterForm;
 
 $this->title = 'Менеджер онлайн заявок';
 ?>
@@ -8,20 +10,18 @@ $this->title = 'Менеджер онлайн заявок';
 
 <?php $notify->accept(); ?>
 
+<?= FilterForm::widget($filter); ?>
+
 <?php if (count($requests) == 0): ?>
-<p>активные записи отсутствуют</p>
+<p>ничего не найдено</p>
 <?php else: ?>
-<p>сортировать по:
-<a href="<?= UrlManager::link('request/manager'); ?>" class="btn btn-outline-secondary btn-sm">имени клиента</a>
-<a href="<?= UrlManager::link('request/manager'); ?>" class="btn btn-outline-secondary btn-sm">номеру телефона</a>
-<a href="<?= UrlManager::link('request/manager'); ?>" class="btn btn-outline-secondary btn-sm">адресу эл. почты</a></p>
 <div class="table-responsive">
   <table class="table custom-table">
     <thead>
       <tr>
-        <th>{NAME}</th>
-        <th>{PHONE}</th>
-        <th>{EMAIL}</th>
+        <th>Имя</th>
+        <th>Телефон</th>
+        <th>E-mail</th>
         <th></th>
       </tr>
     </thead>
@@ -39,8 +39,6 @@ $this->title = 'Менеджер онлайн заявок';
       <?php endforeach; ?>
     </tbody>
   </table>
-  <?php
-  echo Links::widget($pagination);
-  ?>
+  <?= Links::widget($pagination); ?>
 </div>
 <?php endif; ?>

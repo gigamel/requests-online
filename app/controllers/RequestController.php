@@ -7,6 +7,7 @@ use vendor\ASh\Http\HttpRequest;
 use vendor\ASh\Session\PushNotify;
 use vendor\ASh\Pager\Pagination;
 use vendor\ASh\Url\UrlManager;
+use vendor\ASh\Filter\DataFilter;
 
 class RequestController extends Controller
 {
@@ -14,20 +15,29 @@ class RequestController extends Controller
     {
         $model = new Request();
 
+        $filter = new DataFilter([
+            'options' => [
+                'name' => 'имени',
+                'phone' => 'номеру телефона',
+                'email' => 'адресу эл. почты'
+            ]
+        ]);
+        
         $pagination = new Pagination([
-            'total' => $model->getCount(),
+            'total' => $model->getCount($filter->condition),
             'limit' => 20
         ]);
         
         $requests = $model->getList($pagination->limit, $pagination->offset,
-            'id DESC');
+            'id DESC', $filter->condition);
         
         $notify = new PushNotify();
         
         $this->render('request/manager', [
             'requests' => $requests,
             'pagination' => $pagination,
-            'notify' => $notify
+            'notify' => $notify,
+            'filter' => $filter
         ]);
     }
     
