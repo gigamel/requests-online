@@ -1,18 +1,18 @@
 <?php
-namespace vendor\ASh\Url;
 
-use ASh;
+namespace vendor\ASh\Url;
 
 class UrlManager
 {
     /**
      * @param string $path
+     *
      * @return string
      */
-    public static function link($path = null)
+    public static function link(string $path = ''): string
     {
-        $path = is_string($path) ? $path : '';
-        
-        return empty(trim($path)) ? $_SERVER['REQUEST_URI'] : '/index.php?'.ASh::$app->queryVar.'='.$path;
+        $path = trim($path);
+        return empty($path) ? $_SERVER['REQUEST_URI']
+            : '/index.php?' . \ASh::$app->queryVar . '=' . $path;
     }
 }

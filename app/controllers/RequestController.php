@@ -1,9 +1,9 @@
 <?php
+
 namespace app\controllers;
 
 use abstracts\Controller;
 use app\models\Request;
-use vendor\ASh\Http\HttpRequest;
 use vendor\ASh\Session\PushNotify;
 use vendor\ASh\Pager\Pagination;
 use vendor\ASh\Url\UrlManager;
@@ -11,7 +11,10 @@ use vendor\ASh\Filter\DataFilter;
 
 class RequestController extends Controller
 {
-    public function actionManager()
+    /**
+     * @return void
+     */
+    public function actionManager(): void
     {
         $model = new Request();
 
@@ -28,8 +31,12 @@ class RequestController extends Controller
             'limit' => 20
         ]);
         
-        $requests = $model->getList($pagination->limit, $pagination->offset,
-            'id DESC', $filter->condition);
+        $requests = $model->getList(
+            $pagination->limit,
+            $pagination->offset,
+            'id DESC',
+            $filter->condition
+        );
         
         $notify = new PushNotify();
         
@@ -40,14 +47,13 @@ class RequestController extends Controller
             'filter' => $filter
         ]);
     }
-    
+
     /**
      * @param int $id
      */
-    public function actionDelete($id = null)
+    public function actionDelete(int $id = 0)
     {
-        $id = (int) $id;
-        if ($id == 0) {
+        if ($id < 1) {
             $this->redirect(UrlManager::link('request/manager'));
         }
         

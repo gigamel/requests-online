@@ -1,10 +1,10 @@
 <?php
-use ASh;
+
 use vendor\ASh\Url\UrlManager;
 use vendor\ASh\Pager\Links;
 use vendor\ASh\Filter\FilterForm;
 
-$this->title = 'Менеджер онлайн заявок';
+$this->setTitle('Менеджер онлайн заявок');
 ?>
 <h3>Записи клиентов</h3>
 

@@ -1,8 +1,7 @@
 <?php
+
 namespace vendor\ASh\Db;
 
-use ASh;
-use PDO;
 use PDOException;
 use abstracts\Base;
 
@@ -11,31 +10,35 @@ final class DataObject extends Base
     /**
      * @var null|\PDO $dbh 
      */
-    public static $dbh = null;
+    public static $dbh;
+
+    private function __construct() {}
     
     /**
      * @return null|DataObject
      */
-    public static function connect()
+    public static function connect(): ?DataObject
     {
-        if (static::$dbh === null) {
-            try {
-                $settings = ASh::$app->getOption('pdo');
-                
-                $settings['dsn'] = is_string($settings['dsn']) ? $settings['dsn'] : null;
-                $settings['user'] = is_string($settings['user']) ? $settings['user'] : null;
-                $settings['password'] = is_string($settings['password']) ? $settings['password'] : null;
-                
-                static::$dbh = new PDO($settings['dsn'], $settings['user'], $settings['password']);
-            } catch (PDOException $e) {
-                static::$dbh = null;
-            }
+        if (static::$dbh instanceof \PDO) {
+            return static::$dbh;
+        }
+
+        try {
+            $settings = \ASh::$app->getOption('pdo');
+
+            $settings['dsn'] = (string)($settings['dsn'] ?? '');
+            $settings['user'] = (string)($settings['user'] ?? '');
+            $settings['password'] = (string)($settings['password'] ?? '');
+
+            static::$dbh = new \PDO(
+                $settings['dsn'],
+                $settings['user'],
+                $settings['password']
+            );
+        } catch (PDOException $e) {
+            static::$dbh = null;
         }
         
         return static::$dbh;
-    }
-    
-    private function __construct()
-    {
     }
 }

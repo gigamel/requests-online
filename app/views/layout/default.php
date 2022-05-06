@@ -5,7 +5,7 @@ use vendor\ASh\Url\UrlManager;
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <title><?= $TITLE_VIEW ?></title>
+    <title><?= $this->getTitle(); ?></title>
     <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/css/style.css">
   </head>

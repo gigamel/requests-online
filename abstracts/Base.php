@@ -1,4 +1,5 @@
 <?php
+
 namespace abstracts;
 
 abstract class Base
@@ -8,7 +9,10 @@ abstract class Base
      */
     public function __get($name)
     {
-        die("property <strong>".static::class."::{$name}</strong> is not defined (from __get).");
+        die(
+            'property ' . static::class . '::' . $name . 
+                ' is not defined (from __get)'
+        );
     }
     
     /**
@@ -17,7 +21,10 @@ abstract class Base
      */
     public function __set($name, $value)
     {
-        die("property <strong>".static::class."::{$name}</strong> is not defined (from __set).");
+        die(
+            'property ' . static::class . '::' . $name .
+                ' is not defined (from __set)'
+        );
     }
     
     /**
@@ -26,7 +33,10 @@ abstract class Base
      */
     public function __call($name, $arguments)
     {
-        die("method <strong>".static::class."->{$name}()</strong> is not defined (from __call).");
+        die(
+            'method ' . static::class . '->' . $name . '() ' .
+                'is not defined (from __call)'
+        );
     }
     
     /**
@@ -35,6 +45,9 @@ abstract class Base
      */
     public static function __callStatic($name, $arguments)
     {
-        die("method <strong>".static::class."::{$name}()</strong> is not defined (from __callStatic).");
+        die(
+            'method ' . static::class . '::' . $name .
+                '() is not defined (from __callStatic)'
+        );
     }
 }

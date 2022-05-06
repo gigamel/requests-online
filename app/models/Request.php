@@ -1,89 +1,114 @@
 <?php
+
 namespace app\models;
 
-use PDO;
 use abstracts\ActiveModel;
 use vendor\ASh\Db\DataObject;
 
 class Request extends ActiveModel
 {
+    private const REGEX_PHONE = '/^((\+?[0-9]{1} ?\(?[0-9]{3}\)? ?)?[0-9]{3}' .
+        '([- ]+)?[0-9]{2}([- ]+)?[0-9]{2})$/';
+
+    /** @var string */
     public $email;
+    
+    /** @var int */
     public $id;
+    
+    /** @var string */
     public $name;
+    
+    /** @var string */
     public $phone;
     
-    /**
-     * @return boolean
-     */
-    public function valid()
+    /** @var array */
+    protected $errors;
+    
+    public function __construct()
     {
-        $errors = [];
-        
-        if (!preg_match('/^[a-zA-Zа-яА-Я ]{2,}$/ui', trim($this->name))) {
-            $errors[] = 'некорректное имя';
+        $this->errors = [];
+    }
+
+    /**
+     * @return bool
+     */
+    public function delete(): bool
+    {
+        if (!method_exists($this, 'table') || DataObject::connect() === null) {
+            return false;
         }
-        
-        if (!preg_match('/^((\+?[0-9]{1} ?\(?[0-9]{3}\)? ?)?[0-9]{3}([- ]+)?[0-9]{2}([- ]+)?[0-9]{2})$/', $this->phone)) {
-            $errors[] = 'некорректный телефон (пример: 79000000000 или 2000000)';
-        }
-        
-        if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = 'некорректный e-mail (пример: example@mail.com)';
-        }
-        
-        if (count($errors) > 0) {
-            return $errors;
-        }
-        
+
+        $query = 'DELETE FROM ' . $this->table() . ' WHERE id = :id';
+
+        $stm = DataObject::$dbh->prepare($query);
+        $stm->bindValue(':id', $this->id, \PDO::PARAM_INT);
+        $stm->execute();
+
         return true;
     }
-    
+
     /**
-     * @return string
+     * @return array
      */
-    public function table()
+    public function getErrors(): array
     {
-        return 'request';
+        return $this->errors;
     }
-    
+
+    /**
+     * @return bool
+     */
+    public function hasErrors(): bool
+    {
+        return (bool)count($this->errors);
+    }
+
     /**
      * @return int
      */
-    public function insert()
+    public function insert(): int
     {
-        $result = 0;
+        if (!method_exists($this, 'table') || DataObject::connect() === null) {
+            return 0;
+        }
 
-        if (method_exists($this, 'table') && DataObject::connect() !== null) {            
-            $query = 'INSERT INTO '.$this->table();
-            $query .= ' SET email = :email, name = :name, phone = :phone';
-            
-            $stm = DataObject::$dbh->prepare($query);
-            $stm->bindValue(':email', $this->email, PDO::PARAM_STR);
-            $stm->bindValue(':name', $this->name, PDO::PARAM_STR);
-            $stm->bindValue(':phone', $this->phone, PDO::PARAM_STR);            
-            $stm->execute();
-            
-            $result = DataObject::$dbh->lastInsertId();
-        }
-        
-        return $result;
+        $query = 'INSERT INTO ' . $this->table() .
+            ' SET email = :email, name = :name, phone = :phone';
+
+        $stm = DataObject::$dbh->prepare($query);
+        $stm->bindValue(':email', $this->email, \PDO::PARAM_STR);
+        $stm->bindValue(':name', $this->name, \PDO::PARAM_STR);
+        $stm->bindValue(':phone', $this->phone, \PDO::PARAM_STR);
+        $stm->execute();
+
+        return DataObject::$dbh->lastInsertId();
     }
-    
+
     /**
-     * @return boolean
+     * @return string
      */
-    public function delete()
+    public function table(): string
     {
-        if (method_exists($this, 'table') && DataObject::connect() !== null) {
-            $query = 'DELETE FROM '.$this->table().' WHERE id = :id';
-            
-            $stm = DataObject::$dbh->prepare($query);
-            $stm->bindValue(':id', $this->id, PDO::PARAM_INT);
-            $stm->execute();
-            
-            return true;
+        return 'request';
+    }
+
+    /**
+     * @return void
+     */
+    public function valid(): void
+    {
+        if (!preg_match('/^[a-zA-Zа-яА-Я ]{2,}$/ui', trim($this->name))) {
+            $this->errors[] = 'некорректное имя';
         }
         
-        return false;
+        if (!preg_match(self::REGEX_PHONE, $this->phone)) {
+            $this->errors[] = 'некорректный телефон ' .
+                '(пример: 79000000000 или 2000000)';
+        }
+        
+        if (!filter_var($this->email, FILTER_VALIDATE_EMAIL)) {
+            $this->errors[] = 'некорректный e-mail (пример: example@mail.com)';
+        }
     }
 }

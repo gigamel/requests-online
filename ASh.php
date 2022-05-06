@@ -1,137 +1,133 @@
 <?php
 
 final class ASh extends \abstracts\Base
-{
-    /**
-     * @var ASh $app
-     */
-    public static $app = null;
+{    
+    /** @var string */
+    private $queryVar = 'route';
     
-    /**
-     * @var string $queryVar
-     */
-    public $queryVar = 'route';
+    /** @var string */
+    private $route = 'site/index';
     
-    /**
-     * @var string $route;
-     */
-    public $route = 'site/index';
+    /** @var array */
+    private $settings;
     
-    /**
-     * @var boolean $hasRoute
-     */
-    public $hasRoute = false;
-    
-    /**
-     * @var array $_settings
-     */
-    private $_settings = [];
-    
-    /**
-     * @var array $settings
-     */
-    private $settings = [];
-    
-    /**
-     * @return ASh
-     */
-    public static function createApplication()
+    private function __construct()
     {
-        if (static::$app === null) {
-            static::$app = new static();
-        }
-        
-        return static::$app;
+        $this->settings = [];
     }
     
-    public function run()
+    /**
+     * @return self
+     */
+    public static function createApplication(): self
     {
-        session_start();
+        return new self();
+    }
+    
+    /**
+     * @param string $dotsPath
+     *
+     * @return mixed
+     */
+    final public function getOption(string $dotsPath)
+    {
+        $keys = explode('.', $dotsPath);
         
-        if (isset($_GET[$this->queryVar])) {
-            $this->route = $_GET[$this->queryVar];
-            unset($_GET[$this->queryVar]);
-            $hasRoute = true;
+        $option = array_pop($keys);
+        if (!isset($this->settings[$option])) {
+            return null;
         }
         
-        $controllerPrefix = '';
+        $value = $this->settings[$option];
         
-        $routeParts = explode('/', $this->route);
-        if (count($routeParts) > 1) {
-            $actionId = array_pop($routeParts);
-            $controllerId = array_pop($routeParts);
+        foreach ($keys as $option) {
+            if (!isset($value[$option])) {
+                return null;
+            }
             
-            if (count($routeParts) > 0) {
-                $controllerPrefix = implode('\\', $routeParts).'\\';
-            }
-            $action = 'action'.str_replace('-', '', ucwords($actionId, '-'));
-            $controllerName = '\\app\\controllers\\'.$controllerPrefix
-                .str_replace('-', '', ucwords($controllerId, '-')).'Controller';
-
-            $controller = new $controllerName;
-            if ($controller instanceof \abstracts\Controller) {
-                call_user_func_array([$controller, $action], $_GET);    
-            } else {
-                die("<strong>{$controllerName}</strong> must be extends from <strong>\abstracts\Controller.</strong>");
-            }
-        } else {
-            die("{$this->route} not correct.");
+            $value = $value[$option];
         }
+        
+        return $value;
     }
     
     /**
-     * @param string $type
+     * @param string $id
+     *
      * @return $this
      */
-    final public function loadSettings($type = null)
+    final public function loadSettings(string $id): self
     {
-        if (is_string($type)) {
-            if (!isset($this->_settings[$type])) {
-                $settingsFile = __DIR__ . '/settings/' . $type . '.php';
-                if (file_exists($settingsFile)) {
-                    $settings = require_once($settingsFile);
-                    if (is_array($settings)) {
-                        $this->_settings[$type] = true;
-                        $this->settings[$type] = array_merge($settings, $this->settings);
-                    }
-                }
-            }
+        $settingsFile = __DIR__ . '/settings/' . $id . '.php';
+        if (!file_exists($settingsFile)) {
+            return $this;
+        }
+        
+        $settings = require_once($settingsFile);
+        if (is_array($settings)) {
+            $this->settings[$id] = array_merge($settings, $this->settings);
         }
 
         return $this;
     }
     
     /**
-     * @param string $dotsPath
+     * @return void
      */
-    final public function getOption($dotsPath = null)
+    public function run(): void
     {
-        $value = null;
-
-        $dotsPath = is_string($dotsPath) ? $dotsPath : null;
-        if (!is_null($dotsPath)) {
-            $keys = explode('.', $dotsPath);
-            foreach ($keys as $key) {
-                if (is_null($value)) {
-                    if (isset($this->settings[$key])) {
-                        $value = $this->settings[$key];
-                    } else {
-                        break;
-                    }
-                } else {
-                    if (isset($value[$key])) {
-                        $value = $value[$key];
-                    } else {
-                        break;
-                    }
-                }
-            }
+        session_start();
+        
+        if (isset($_GET[$this->queryVar])) {
+            $this->route = $_GET[$this->queryVar];
+            unset($_GET[$this->queryVar]);
+        }
+ 
+        if (empty($routeParts = explode('/', $this->route))) {
+            die('Incorrect route: ' . $this->route);
         }
         
-        return $value;
+        $action = $this->getActionName(array_pop($routeParts));
+        
+        $controllerName = $this->getControllerName(
+            array_pop($routeParts),
+            empty($routeParts) ? implode('\\', $routeParts) . '\\' : ''
+        );
+        
+        if (!class_exists($controllerName)) {
+            die('Controller: ' . $controllerName . ' is not defined');
+        }
+        
+        $controller = new $controllerName;
+        if (
+            !($controller instanceof \abstracts\Controller) ||
+            !method_exists($controller, $action)
+        ) {
+            die('Unknown route: ' . $this->route);
+        }
+        
+        call_user_func_array([$controller, $action], $_GET);
     }
     
-    private function __construct()
+    /**
+     * @param string $id
+     *
+     * @return string
+     */
+    private function getActionName(string $id): string
     {
+        return 'action' . str_replace('-', '', ucwords($id, '-'));
+    }
+    
+    /**
+     * @param string $id
+     * @param string $prefix
+     *
+     * @return string
+     */
+    private function getControllerName(string $id, string $prefix): string
+    {
+        return '\\app\\controllers\\' . $prefix .
+            str_replace('-', '', ucwords($id, '-')) . 'Controller';
     }
 }

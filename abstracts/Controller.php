@@ -1,82 +1,129 @@
 <?php
+
 namespace abstracts;
 
 abstract class Controller extends Base
 {
-    /**
-     * @var array $errors
-     */
-    public $errors = [];
-    
-    /**
-     * @var string $title
-     */
-    protected $title = '';
-    
-    /**
-     * @var string $layout
-     */
-    protected $layout = 'default';
-    
-    /**
-     * 
-     * @param string $path
-     */
-    public function redirect(string $path)
+    /** @var array */
+    protected $errors = [];
+
+    /** @var string */
+    protected $content;
+
+    /** @var string */
+    protected $layout;
+
+    /** @var string */
+    protected $title;
+
+    public function __construct()
     {
-        $path = is_string($path) ? $path : '';
+        $this->errors = [];
+        $this->layout = 'default';
         
-        header("Location: {$path}");
+        $this->setTitle();
+        $this->setContent();
+    }
+
+    /**
+     * @param mixed $errors
+     *
+     * @return void
+     */
+    public function attachErrors($errors = null): void
+    {
+        if (is_string($errors)) {
+            $this->errors[] = $errors;
+        }
         
-        die;
+        if (!is_array($errors)) {
+            return;
+        }
+        
+        foreach ($errors as $error) {
+            $this->errors[] = is_string($error) ? $error : '?';
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getContent(): string
+    {
+        return $this->content;
+    }
+
+    /**
+     * @return string
+     */
+    public function getTitle(): string
+    {
+        return $this->title;
     }
     
     /**
-     * 
+     * @return bool
+     */
+    public function hasErrors(): bool
+    {
+        return (bool)count($this->errors);
+    }
+    
+    /**
+     * @param string $path
+     * @param bool $permanently
+     *
+     * @return void
+     */
+    public function redirect(
+        string $path = '/',
+        bool $permanently = false
+    ): void {
+        header('Location: ' . $path, true, $permanently ? 301 : 302);
+        exit(1);
+    }
+    
+    /**
      * @param string $view
      * @param array $vars
+     *
+     * @return void
      */
-    public function render(string $view, array $vars = [])
+    public function render(string $view, array $vars = []): void
     {
-        $CONTENT_VIEW = '';
-        
-        $viewDir = ROOT."/app/views";
-        $viewFile = "{$viewDir}/{$view}.php";
+        $viewDir = ROOT . '/app/views';
+        $viewFile = $viewDir . '/' . $view . '.php';
         if (file_exists($viewFile)) {
             extract($vars);
             ob_start();
             require $viewFile;
-            $CONTENT_VIEW = ob_get_contents();
+            $this->setContent(ob_get_contents());
             ob_end_clean();
         }
         
-        $TITLE_VIEW = is_string($this->title) ? $this->title : '';
-        
-        $viewFile = "{$viewDir}/layout/{$this->layout}.php";
+        $viewFile = $viewDir . '/layout/' . $this->layout . '.php';
         if (file_exists($viewFile)) {
             require_once $viewFile;
         }
     }
     
     /**
-     * @return boolean
+     * @param string $content
+     *
+     * @return void
      */
-    public function hasErrors()
+    public function setContent(string $content = ''): void
     {
-        return (count($this->errors) > 0);
+        $this->content = $content;
     }
     
     /**
-     * @param string|array $errors
+     * @param string $title
+     *
+     * @return void
      */
-    public function attachErrors($errors = null)
+    public function setTitle(string $title = ''): void
     {
-        if (is_string($errors)) {
-            $this->errors[] = $errors;
-        } elseif (is_array($errors)) {
-            foreach ($errors as $error) {
-                $this->errors[] = is_string($error) ? $error : '?';
-            }
-        }
+        $this->title = $title;
     }
 }

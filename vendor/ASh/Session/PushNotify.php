@@ -1,4 +1,5 @@
 <?php
+
 namespace vendor\ASh\Session;
 
 use abstracts\Base;
@@ -6,31 +7,41 @@ use abstracts\Base;
 class PushNotify extends Base
 {
     /**
-     * @param type $message
+     * @param null|string $message
+     * @param null|string $type
+     *
+     * @return void
      */
-    public function send($message = null, $type = null)
+    public function send(?string $message = null, ?string $type = null): void
     {
-        $message = is_string($message) ? $message : null;
-        if ($message !== null) {
-            $_SESSION['_message_notify'] = $message;
-            
-            switch ($type) {
-                case 'success':
-                case 'error':
-                    break;
-                
-                default:
-                    $type = 'info';
-                    break;
-            }
-            $_SESSION['_type_notify'] = $type;
+        if ($message === null) {
+            return;
         }
+        
+        $_SESSION['_message_notify'] = $message;
+        
+        switch ($type) {
+            case 'success':
+            case 'error':
+                break;
+
+            default:
+                $type = 'info';
+                break;
+        }
+        
+        $_SESSION['_type_notify'] = $type;
     }
 
-    public function accept()
+    /**
+     * @return void
+     */
+    public function accept(): void
     {
         if (isset($_SESSION['_message_notify'])) {
-            $type = isset($_SESSION['_type_notify']) ? $_SESSION['_type_notify'] : null;
+            $type = isset($_SESSION['_type_notify']) ? $_SESSION['_type_notify']
+                : null;
+            
             switch ($type) {
                 case 'success':
                     $class = 'border-primary text-primary';
@@ -45,7 +56,9 @@ class PushNotify extends Base
                     break;
             }
             
-            echo "<p class='p-3 border {$class}'>{$_SESSION['_message_notify']}</p>";
+            echo "<p class='p-3 border {$class}'>" .
+                "{$_SESSION['_message_notify']}</p>";
+
             unset($_SESSION['_message_notify']);
             
             if (isset($_SESSION['_type_notify'])) {

@@ -1,7 +1,8 @@
 <?php
+
 use vendor\ASh\Url\UrlManager;
 
-$this->title = 'Удаление заявки';
+$this->setTitle('Удаление заявки');
 ?>
 <h3>Удалить заявку #<?= $request->id ?>[<?= $request->name ?>]?</h3>
 <form method="POST" action="">
